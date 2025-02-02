@@ -1,5 +1,5 @@
 import pygame
-from MassiveBody import MassiveBody
+from MassiveBody import MassiveBody, MassiveBodyGroup
 from dotenv import load_dotenv
 import os
 import logging
@@ -39,10 +39,10 @@ body3 = MassiveBody(10, image3, body3_coord[0], body3_coord[1])
 body3.velocity[0] = -1
 
 
-all_sprites= pygame.sprite.Group()
-all_sprites.add(body1)
-all_sprites.add(body2)
-all_sprites.add(body3)
+massive_bodies= MassiveBodyGroup()
+massive_bodies.add(body1)
+massive_bodies.add(body2)
+massive_bodies.add(body3)
 
 
 running= True
@@ -53,11 +53,10 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             print(event)
     
-    MassiveBody.update_all_massivebody_velocities()
-    all_sprites.update()
+    massive_bodies.update()
     logging.debug("----CLOCK TICK-----\n")
 
     screen.fill((0,0,0))
-    all_sprites.draw(screen)
+    massive_bodies.draw(screen)
     pygame.display.flip()
     clock.tick(FPS)

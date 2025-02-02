@@ -11,6 +11,20 @@ load_dotenv()
 BIG_G = float(os.getenv('BIG_G'))
 FPS = float(os.getenv('FPS'))
 
+class MassiveBodyGroup(pygame.sprite.Group):
+    def __init__(self):
+        super().__init__()
+
+    def add(self, *sprites):
+        for sprite in sprites:
+            if not isinstance(sprite, MassiveBody):
+                raise ValueError("Only MassiveBodies can be contained in MassiveBodyGroups!")
+        pygame.sprite.Group.add(self, *sprites) 
+
+    def update(self, *args, **kwargs):
+        for body in self:
+            body.update_velocity()
+        super().update(*args, **kwargs)
 
 
 class MassiveBody(pygame.sprite.Sprite):
