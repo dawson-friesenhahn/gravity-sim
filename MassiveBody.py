@@ -6,6 +6,8 @@ import numpy as np
 from typing import List, Self
 import logging
 logger = logging.getLogger(__name__)
+from util import draw_arrow
+
 
 load_dotenv()
 BIG_G = float(os.getenv('BIG_G'))
@@ -21,6 +23,11 @@ class MassiveBodyGroup(pygame.sprite.Group):
                 raise ValueError("Only MassiveBodies can be contained in MassiveBodyGroups!")
         pygame.sprite.Group.add(self, *sprites) 
 
+    def draw(self, screen, bgsurf=None, special_flags=0):
+        super().draw(screen, bgsurf, special_flags)
+        for sprite in self.sprites():
+            sprite.draw(screen)
+
     def update(self, *args, **kwargs):
         for body in self:
             body.update_velocity(self.sprites())
@@ -29,7 +36,7 @@ class MassiveBodyGroup(pygame.sprite.Group):
 
 class MassiveBody(pygame.sprite.Sprite):
     _body_id = 0
-    def __init__(self, mass: float, image: pygame.surface.Surface, x: int, y: int):
+    def __init__(self, mass: float, image: pygame.surface.Surface, x: int, y: int, immovable = False):
         super().__init__()
         self.image = image 
         self.rect = self.image.get_rect(center = (x,y) )
@@ -37,12 +44,30 @@ class MassiveBody(pygame.sprite.Sprite):
         self.velocity = np.array([0, 0], dtype=np.float32)
         self.id = MassiveBody._body_id
         self.collission_this_frame = False
+        self.show_force_vectors = False
+        self.arrow_params = []
+        self.immovable = immovable
         MassiveBody._body_id +=1
 
     def get_center(self) ->np.array:
         return np.array(self.rect.center)
     
+    def add_force_vector_arrow(self, direction, magnitude):
+        vec = direction * magnitude / 100
+        start = Vector2(*(self.get_center()+ self.velocity))
+        end = start + vec
+        params = (start, end, (255, 255, 255))
+        self.arrow_params.append(params)
+
+    def draw(self, screen):
+        if self.show_force_vectors:
+            for params in self.arrow_params:
+                draw_arrow(screen, *params)
+
     def update_velocity(self, massiveBodies, additional_force = None):
+        if self.immovable:
+            return
+        self.arrow_params.clear()
         if additional_force is None:
             additional_force = np.array([0,0], dtype=np.float32)
         force_vector = additional_force
@@ -65,7 +90,10 @@ class MassiveBody(pygame.sprite.Sprite):
                     #self.rect.y = new_position[1]
                     logger.debug(f"\tNew velocity: {self.velocity}")
                 continue
-            force_vector += calculate_force_vector(self, body)
+            force_vector_this_body =  calculate_force_vector(self, body)
+            if self.show_force_vectors:
+                self.add_force_vector_arrow(body.get_center(), force_vector_this_body)
+            force_vector += force_vector_this_body
         self.collission_this_frame = False
         logger.debug(f"\tForce: {force_vector}")
         delta_v = calculate_delta_v(self, force_vector)
