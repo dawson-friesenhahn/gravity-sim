@@ -23,6 +23,7 @@ class MassiveBody(pygame.sprite.Sprite):
         self.mass = mass
         self.velocity = np.array([0, 0], dtype=np.float32)
         self.id = MassiveBody._body_id
+        self.collission_this_frame = False
         MassiveBody._body_id +=1
         MassiveBody._massive_body_list.append(self)
 
@@ -32,15 +33,26 @@ class MassiveBody(pygame.sprite.Sprite):
     def update_velocity(self):
         force_vector = np.array([0,0], dtype=np.float32)
         logger.debug(self)
+        logger.debug(f"\tOld Velocity: {self.velocity}")
         for body in MassiveBody._massive_body_list:
             if body == self:
                 continue
+            if pygame.sprite.collide_circle(self, body):
+                logger.debug(f"\tCOLLISION!")
+                if not self.collission_this_frame:
+                    speed = np.linalg.norm(self.velocity)
+                    new_velocity = self.calculate_velocity_after_collission(body)
+                    body.velocity = body.calculate_velocity_after_collission(self)
+                    body.collission_this_frame = True
+                    self.collission_this_frame = True
+                    self.velocity = new_velocity
+                    logger.debug(f"\tNew velocity: {self.velocity}")
+                continue
             force_vector += calculate_force_vector(self, body)
-        
+        self.collission_this_frame = False
         logger.debug(f"\tForce: {force_vector}")
         delta_v = calculate_delta_v(self, force_vector)
         logger.debug(f"\tDelta V: {delta_v}")
-        logger.debug(f"\tOld Velocity: {self.velocity}")
         self.velocity += delta_v
         logger.debug(f"\tNew Velocity: {self.velocity}\n")
 
@@ -48,6 +60,12 @@ class MassiveBody(pygame.sprite.Sprite):
         self.rect.x += self.velocity[0]
         self.rect.y += self.velocity[1]
         
+    def calculate_velocity_after_collission(self, other: Self):
+        '''Stolen from https://en.wikipedia.org/wiki/Elastic_collision'''
+        return self.velocity - (2*other.mass)/(self.mass + other.mass) * ((self.velocity - other.velocity).dot(self.get_center() - other.get_center()))/(np.linalg.norm(self.get_center() - other.get_center()) **2) * (self.get_center() - other.get_center())
+
+
+
     @staticmethod
     def update_all_massivebody_velocities():
         for body in MassiveBody._massive_body_list:
@@ -81,6 +99,7 @@ def calculate_force_vector(body1: MassiveBody, body2: MassiveBody) ->np.array:
 
 def calculate_delta_v(body1: MassiveBody, force: np.array):
     return force/body1.mass * (1/FPS)
+
 
 if __name__ == "__main__":
     image1 = pygame.Surface((20, 20))
