@@ -4,6 +4,8 @@ import os
 from pygame.math import Vector2
 import numpy as np
 from typing import List, Self
+import logging
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 BIG_G = float(os.getenv('BIG_G'))
@@ -29,18 +31,18 @@ class MassiveBody(pygame.sprite.Sprite):
     
     def update_velocity(self):
         force_vector = np.array([0,0], dtype=np.float32)
-        print(self)
+        logger.debug(self)
         for body in MassiveBody._massive_body_list:
             if body == self:
                 continue
             force_vector += calculate_force_vector(self, body)
         
-        print(f"\tForce: {force_vector}")
+        logger.debug(f"\tForce: {force_vector}")
         delta_v = calculate_delta_v(self, force_vector)
-        print(f"\tDelta V: {delta_v}")
-        print(f"\tOld Velocity: {self.velocity}")
+        logger.debug(f"\tDelta V: {delta_v}")
+        logger.debug(f"\tOld Velocity: {self.velocity}")
         self.velocity += delta_v
-        print(f"\tNew Velocity: {self.velocity}\n")
+        logger.debug(f"\tNew Velocity: {self.velocity}\n")
 
     def update(self):
         self.rect.x += self.velocity[0]
@@ -92,4 +94,4 @@ if __name__ == "__main__":
     body2 = MassiveBody(20, image2, x=90, y=50)
 
     force=(calculate_force_vector(body1, body2))
-    print(calculate_delta_v(body1, force))
+    logger.debug(calculate_delta_v(body1, force))
