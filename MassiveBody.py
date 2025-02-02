@@ -23,12 +23,11 @@ class MassiveBodyGroup(pygame.sprite.Group):
 
     def update(self, *args, **kwargs):
         for body in self:
-            body.update_velocity()
+            body.update_velocity(self.sprites())
         super().update(*args, **kwargs)
 
 
 class MassiveBody(pygame.sprite.Sprite):
-    _massive_body_list: List[Self] = []
     _body_id = 0
     def __init__(self, mass: float, image: pygame.surface.Surface, x: int, y: int):
         super().__init__()
@@ -39,16 +38,17 @@ class MassiveBody(pygame.sprite.Sprite):
         self.id = MassiveBody._body_id
         self.collission_this_frame = False
         MassiveBody._body_id +=1
-        MassiveBody._massive_body_list.append(self)
 
     def get_center(self) ->np.array:
         return np.array(self.rect.center)
     
-    def update_velocity(self):
-        force_vector = np.array([0,0], dtype=np.float32)
+    def update_velocity(self, massiveBodies, additional_force = None):
+        if additional_force is None:
+            additional_force = np.array([0,0], dtype=np.float32)
+        force_vector = additional_force
         logger.debug(self)
         logger.debug(f"\tOld Velocity: {self.velocity}")
-        for body in MassiveBody._massive_body_list:
+        for body in massiveBodies:
             if body == self:
                 continue
             if pygame.sprite.collide_circle(self, body):
@@ -60,6 +60,9 @@ class MassiveBody(pygame.sprite.Sprite):
                     body.collission_this_frame = True
                     self.collission_this_frame = True
                     self.velocity = new_velocity
+                    #new_position = self.calculate_new_position_after_collission(body)
+                    #self.rect.x = new_position[0]
+                    #self.rect.y = new_position[1]
                     logger.debug(f"\tNew velocity: {self.velocity}")
                 continue
             force_vector += calculate_force_vector(self, body)
@@ -76,19 +79,21 @@ class MassiveBody(pygame.sprite.Sprite):
         
     def calculate_velocity_after_collission(self, other: Self):
         '''Stolen from https://en.wikipedia.org/wiki/Elastic_collision'''
-        return self.velocity - (2*other.mass)/(self.mass + other.mass) * ((self.velocity - other.velocity).dot(self.get_center() - other.get_center()))/(np.linalg.norm(self.get_center() - other.get_center()) **2) * (self.get_center() - other.get_center())
+        return self.velocity - (2*other.mass)/(self.mass + other.mass) * ((self.velocity - other.velocity).dot(self.get_center() - other.get_center()))/(np.linalg.norm(self.get_center() - other.get_center()) **2) * (self.get_center() - other.get_center()) 
+    
+    def calculate_new_position_after_collission(self, other:Self):
+        '''this don't work right, looks weird'''
+        direction_to_move = (self.get_center() - other.get_center()) / np.linalg.norm(self.get_center() - other.get_center())
+        #print(f"Direction: {direction_to_move}")
+        try:
+            minimum_separation = self.radius + other.radius
+        except:
+            minimum_separation = max(self.rect.width, self.rect.height)/2 + max(other.rect.width, other.rect.height)/2
+        
+        #print(f"Min sep: {minimum_separation}")
+        new_position = other.get_center() + direction_to_move * minimum_separation
+        return new_position
 
-
-
-    @staticmethod
-    def update_all_massivebody_velocities():
-        for body in MassiveBody._massive_body_list:
-            body.update_velocity()
-
-
-
-    def __del__(self):
-        MassiveBody._massive_body_list.remove(self)
 
     def __repr__(self):
         return f"MassiveBody {self.id} at {self.get_center()}"
@@ -116,15 +121,16 @@ def calculate_delta_v(body1: MassiveBody, force: np.array):
 
 
 if __name__ == "__main__":
+    body1_coord = (305,301)
     image1 = pygame.Surface((20, 20))
-    pygame.draw.circle(image1, (0,0,255), (30,30), 10)
+    pygame.draw.circle(surface=image1, color=(0,0,255), center=(10,10), radius=10)
+    body1 = MassiveBody(mass=10, image=image1, x=body1_coord[0], y=body1_coord[1])
+    body1.velocity[0] = 0.5
 
-    body1 = MassiveBody(mass=10, image=image1, x=50, y= 50)
-    
+    body2_coord = (310, 300)
     image2 = pygame.Surface((20, 20))
-    pygame.draw.circle(image2, (255,0,0), (30,30), 10)
+    pygame.draw.circle(image2, (255,0,0), center=(10,10), radius=10)
+    body2 = MassiveBody(10, image2, body2_coord[0], body2_coord[1])
+    body2.velocity[0] = 0.5
 
-    body2 = MassiveBody(20, image2, x=90, y=50)
-
-    force=(calculate_force_vector(body1, body2))
-    logger.debug(calculate_delta_v(body1, force))
+    print(body1.calculate_new_position_after_collission(body2))

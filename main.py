@@ -1,8 +1,11 @@
 import pygame
 from MassiveBody import MassiveBody, MassiveBodyGroup
+from Player import Player
 from dotenv import load_dotenv
 import os
 import logging
+
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename = 'grav.log', filemode='w', level=logging.DEBUG)
@@ -22,8 +25,8 @@ clock= pygame.time.Clock()
 body1_coord = (300,400)
 image1 = pygame.Surface((20, 20))
 pygame.draw.circle(surface=image1, color=(0,0,255), center=(10,10), radius=10)
-body1 = MassiveBody(mass=10, image=image1, x=body1_coord[0], y=body1_coord[1])
-body1.velocity[0] = 0.5
+body1 = MassiveBody(mass=10000, image=image1, x=body1_coord[0], y=body1_coord[1])
+#body1.velocity[0] = 1
 
 
 body2_coord = (400, 400)
@@ -39,10 +42,19 @@ body3 = MassiveBody(10, image3, body3_coord[0], body3_coord[1])
 body3.velocity[0] = -1
 
 
+
+
+player_img = pygame.image.load("smiley.png").convert_alpha()
+player_img = pygame.transform.scale(player_img, (30, 30))
+player = Player(10, player_img, 300, 300)
+
+
+
 massive_bodies= MassiveBodyGroup()
 massive_bodies.add(body1)
-massive_bodies.add(body2)
-massive_bodies.add(body3)
+#massive_bodies.add(body2)
+#massive_bodies.add(body3)
+massive_bodies.add(player)
 
 
 running= True
@@ -52,6 +64,20 @@ while running:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             print(event)
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player.rotate(-5)
+    if keys[pygame.K_RIGHT]:
+        player.rotate(5)
+    if keys[pygame.K_SPACE]:
+        if not player.thrusting:
+            player.toggle_thrust()
+    else:
+        if player.thrusting:
+            player.toggle_thrust()
+
+    
     
     massive_bodies.update()
     logging.debug("----CLOCK TICK-----\n")
