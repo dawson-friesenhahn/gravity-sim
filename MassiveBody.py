@@ -45,6 +45,7 @@ class MassiveBody(pygame.sprite.Sprite):
         self.id = MassiveBody._body_id
         self.collission_this_frame = False
         self.show_force_vectors = False
+        self.show_velocity_vector = False
         self.arrow_params = []
         self.immovable = immovable
         MassiveBody._body_id +=1
@@ -58,11 +59,16 @@ class MassiveBody(pygame.sprite.Sprite):
         end = start + vec
         params = (start, end, (255, 255, 255))
         self.arrow_params.append(params)
+    
+    def add_velocity_vector(self):
+        start = Vector2(*(self.get_center()+ self.velocity))
+        end = start + Vector2(*(self.velocity* 10))
+        params = (start, end, (0, 255, 0))
+        self.arrow_params.append(params)
 
     def draw(self, screen):
-        if self.show_force_vectors:
-            for params in self.arrow_params:
-                draw_arrow(screen, *params)
+        for params in self.arrow_params:
+            draw_arrow(screen, *params)
 
     def update_velocity(self, massiveBodies, additional_force = None):
         if self.immovable:
@@ -100,6 +106,8 @@ class MassiveBody(pygame.sprite.Sprite):
         logger.debug(f"\tDelta V: {delta_v}")
         self.velocity += delta_v
         logger.debug(f"\tNew Velocity: {self.velocity}\n")
+        if self.show_velocity_vector:
+            self.add_velocity_vector()
 
     def update(self):
         self.rect.x += self.velocity[0]

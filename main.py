@@ -79,6 +79,9 @@ while running:
     if keys[pygame.K_f]:
         for sprite in massive_bodies:
             sprite.show_force_vectors = not sprite.show_force_vectors
+    if keys[pygame.K_v]:
+        for sprite in massive_bodies:
+            sprite.show_velocity_vector = not sprite.show_velocity_vector
 
     
     
