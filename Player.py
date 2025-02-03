@@ -27,7 +27,7 @@ class Player(MassiveBody.MassiveBody):
     def reset(self):
         self.rotate(-self.heading)
         self.thrusting= False
-        self.rect = self.image.get_rect(center = (300, 300))
+        self.position = np.array([0,0], dtype=np.float32)
         self.velocity = np.array([0,0], dtype=np.float32)
         
 

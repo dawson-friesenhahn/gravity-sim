@@ -53,11 +53,13 @@ class MassiveBody(pygame.sprite.Sprite):
     def get_center(self) ->np.array:
         return self.position
     
-    def add_force_vector_arrow(self, direction, magnitude):
-        vec = direction * magnitude / 100
+    def add_force_vector_arrow(self, target, magnitude):
         start = Vector2(*(self.get_center()+ self.velocity))
-        end = start + vec
+        direction = (target - start) / np.linalg.norm(target - start)
+        end = start + (direction * magnitude /self.mass * 10)
         params = (start, end, (255, 255, 255))
+        logger.debug(f"Force vector direction: {direction}")
+        logger.debug(f"force vector: <{start} , {end}>")
         self.arrow_params.append(params)
     
     def add_velocity_vector(self):
@@ -98,7 +100,7 @@ class MassiveBody(pygame.sprite.Sprite):
                 continue
             force_vector_this_body =  calculate_force_vector(self, body)
             if self.show_force_vectors:
-                self.add_force_vector_arrow(body.get_center(), force_vector_this_body)
+                self.add_force_vector_arrow(body.get_center(), np.linalg.norm(force_vector_this_body))
             force_vector += force_vector_this_body
         self.collission_this_frame = False
         logger.debug(f"\tForce: {force_vector}")

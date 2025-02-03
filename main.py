@@ -33,7 +33,7 @@ body2 = MassiveBody(10000, image2, body2_coord[0], body2_coord[1])
 body2.velocity[1] = 1
 
 
-player_img = pygame.image.load("smiley.png").convert_alpha()
+player_img = pygame.image.load("rocket.png").convert_alpha()
 player_img = pygame.transform.scale(player_img, (30, 30))
 player = Player(10, player_img, SCREEN_WIDTH//2 - SCREEN_WIDTH//3, SCREEN_HEIGHT//2)
 player.velocity[1] = -1
