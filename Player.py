@@ -9,7 +9,7 @@ class Player(MassiveBody.MassiveBody):
     def __init__(self, mass: float, image: pygame.surface.Surface, x: int, y: int):
         self.heading = 0
         self.thrusting = False
-        self.thrust_magnitude = 100
+        self.thrust_magnitude = 10
         self.original_image = image
         super().__init__(mass, image, x, y)
 

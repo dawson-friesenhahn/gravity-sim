@@ -111,8 +111,8 @@ class MassiveBody(pygame.sprite.Sprite):
 
     def update(self):
         self.position +=  self.velocity 
-        self.rect.x = int(self.position[0])
-        self.rect.y = int(self.position[1])
+        self.rect.x = int(self.position[0] - self.image.get_width()//2)
+        self.rect.y = int(self.position[1] - self.image.get_height()//2)
         
     def calculate_velocity_after_collission(self, other: Self):
         '''Stolen from https://en.wikipedia.org/wiki/Elastic_collision'''
