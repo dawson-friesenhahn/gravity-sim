@@ -1,6 +1,4 @@
 import pygame
-from dotenv import load_dotenv
-import os
 from pygame.math import Vector2
 import numpy as np
 from typing import List, Self
@@ -9,12 +7,13 @@ logger = logging.getLogger(__name__)
 from util import draw_arrow
 
 
-load_dotenv()
-BIG_G = float(os.getenv('BIG_G'))
-FPS = float(os.getenv('FPS'))
+from Constants import BIG_G, FPS
+
 
 class MassiveBodyGroup(pygame.sprite.Group):
+    
     def __init__(self):
+        logger.debug(f"BIG G: {BIG_G}")
         super().__init__()
 
     def add(self, *sprites):
@@ -38,6 +37,7 @@ class MassiveBody(pygame.sprite.Sprite):
     _body_id = 0
     def __init__(self, mass: float, image: pygame.surface.Surface, x: int, y: int, immovable = False):
         super().__init__()
+        self.position = np.array([x, y], np.float32)
         self.image = image 
         self.rect = self.image.get_rect(center = (x,y) )
         self.mass = mass
@@ -51,7 +51,7 @@ class MassiveBody(pygame.sprite.Sprite):
         MassiveBody._body_id +=1
 
     def get_center(self) ->np.array:
-        return np.array(self.rect.center)
+        return self.position
     
     def add_force_vector_arrow(self, direction, magnitude):
         vec = direction * magnitude / 100
@@ -110,8 +110,9 @@ class MassiveBody(pygame.sprite.Sprite):
             self.add_velocity_vector()
 
     def update(self):
-        self.rect.x += self.velocity[0]
-        self.rect.y += self.velocity[1]
+        self.position +=  self.velocity 
+        self.rect.x = int(self.position[0])
+        self.rect.y = int(self.position[1])
         
     def calculate_velocity_after_collission(self, other: Self):
         '''Stolen from https://en.wikipedia.org/wiki/Elastic_collision'''
