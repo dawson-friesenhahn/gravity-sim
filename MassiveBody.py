@@ -27,6 +27,14 @@ class MassiveBodyGroup(pygame.sprite.Group):
         for sprite in self.sprites():
             sprite.draw(screen)
 
+    def toggle_show_force_vectors(self):
+        for sprite in self.sprites():
+                sprite.show_force_vectors = not sprite.show_force_vectors
+    
+    def toggle_show_velocity_vectors(self):
+        for sprite in self.sprites():
+            sprite.show_velocity_vector = not sprite.show_velocity_vector
+
     def update(self, *args, **kwargs):
         for body in self:
             body.update_velocity(self.sprites())
