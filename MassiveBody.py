@@ -8,12 +8,14 @@ from util import draw_arrow
 
 
 from Constants import BIG_G, FPS
+from ToggleHelper import ToggleHelper
 
 
 class MassiveBodyGroup(pygame.sprite.Group):
     
     def __init__(self):
         logger.debug(f"BIG G: {BIG_G}")
+        self.toggle_helper = ToggleHelper()
         super().__init__()
 
     def add(self, *sprites):
@@ -28,16 +30,19 @@ class MassiveBodyGroup(pygame.sprite.Group):
             sprite.draw(screen)
 
     def toggle_show_force_vectors(self):
-        for sprite in self.sprites():
-                sprite.show_force_vectors = not sprite.show_force_vectors
+        if self.toggle_helper.key_pressed(pygame.K_f):
+            for sprite in self.sprites():
+                    sprite.show_force_vectors = not sprite.show_force_vectors
     
     def toggle_show_velocity_vectors(self):
-        for sprite in self.sprites():
-            sprite.show_velocity_vector = not sprite.show_velocity_vector
+        if self.toggle_helper.key_pressed(pygame.K_v):
+            for sprite in self.sprites():
+                sprite.show_velocity_vector = not sprite.show_velocity_vector
 
     def update(self, *args, **kwargs):
         for body in self:
             body.update_velocity(self.sprites())
+        self.toggle_helper.update()
         super().update(*args, **kwargs)
 
 
